@@ -1,7 +1,7 @@
 addEventListener('load', function() {
     document.getElementById('play').addEventListener('click', 
     function(){
-        alert("Comença la partida");
+        window.location.assign("./html/game.html");
     });
 
     document.getElementById('options').addEventListener('click', 
