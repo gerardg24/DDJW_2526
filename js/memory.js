@@ -14,9 +14,10 @@ var game = {
     states: [],
     setValue: null,
     ready: 0,
-    lastCard: null,
+    flippedCards: [],
     score: 200,
-    pairs: 2,
+    numCards: 2,
+    groupSize: 2,
     goBack: function(idx){
         this.setValue && this.setValue[idx](back);
         this.states[idx] = StateCard.ENABLE;
@@ -26,19 +27,28 @@ var game = {
         this.states[idx] = StateCard.DISABLE;
     },
     select: function(){
-        if (sessionStorage.load){ // Carreguem partida
+        if (sessionStorage.load){ 
             let toLoad = JSON.parse(sessionStorage.load);
             this.items = toLoad.items;
             this.states = toLoad.states;
-            this.lastCard = toLoad.lastCard;
+            this.flippedCards = toLoad.flippedCards || [];
             this.score = toLoad.score;
-            this.pairs = toLoad.pairs;
+            this.numCards = toLoad.numCards;
+            this.groupSize = toLoad.groupSize;
         }
-        else{ // Nova partida
+        else{ 
+            this.numCards = parseInt(sessionStorage.getItem('numCards')) || 2;
+            this.groupSize = parseInt(sessionStorage.getItem('groupSize')) || 2;
+            this.flippedCards = [];
             this.items = resources.slice();          
             shuffe(this.items);                      
-            this.items = this.items.slice(0, this.pairs); 
-            this.items = this.items.concat(this.items);        
+            this.items = this.items.slice(0, this.numCards); 
+            
+            let currentItems = this.items.slice();
+            for (let i = 1; i < this.groupSize; i++) {
+                this.items = this.items.concat(currentItems);
+            }       
+            
             shuffe(this.items);
             this.states = new Array(this.items.length);
         }
@@ -59,37 +69,50 @@ var game = {
     },
     click: function(indx){
         if (this.states[indx] !== StateCard.ENABLE || this.ready < this.items.length) return;
+        
         this.goFront(indx);
-        if (this.lastCard === null) this.lastCard = indx; // Primera carta clicada
-        else{ // Teníem carta prèvia
-            if (this.items[this.lastCard] === this.items[indx]){
-                this.pairs--;
-                this.states[this.lastCard] = this.states[indx] = StateCard.DONE;
-                if (this.pairs <= 0){
+        this.flippedCards.push(indx);
+
+        if (this.flippedCards.length === this.groupSize) {
+            let match = this.flippedCards.every(id => this.items[id] === this.items[this.flippedCards[0]]);
+            
+            if (match) {
+                this.numCards--;
+                this.flippedCards.forEach(id => this.states[id] = StateCard.DONE);
+                this.flippedCards = [];
+                
+                if (this.numCards <= 0){
                     alert(`Has guanyat amb ${this.score} punts!!!!`);
                     window.location.assign("../");
                 }
-            }
-            else {
-                this.goBack(indx);
-                this.goBack(this.lastCard);
+            } else {
+                let tempCards = [...this.flippedCards];
+                this.flippedCards = [];
+                this.ready -= tempCards.length;
+                
+                setTimeout(() => {
+                    tempCards.forEach(id => this.goBack(id));
+                    this.ready += tempCards.length;
+                }, 1000);
+
                 this.score -= 25;
                 if (this.score <= 0){
                     alert ("Has perdut");
                     window.location.assign("../");
                 }
             }
-            this.lastCard = null;
         }
     },
     save: function(){
         let to_save = JSON.stringify({
             items: this.items,
             states: this.states,
-            lastCard: this.lastCard,
+            flippedCards: this.flippedCards,
             score: this.score,
-            pairs: this.pairs
+            numCards: this.numCards,
+            groupSize: this.groupSize
         });
+        
         let ret = false;
         fetch('../php/save.php', {
             method: "POST",
@@ -97,10 +120,9 @@ var game = {
             headers: {"Content-type": "application/json; charset=UTF-8"}
         })
         .then(response => ret = JSON.parse(response))
-        .catch (err => console.error(err));
+        .catch (err => {});
 
         if (!ret) {
-            console.warn("La partida s'ha guardat en local.");
             localStorage.save = to_save;
         }
         window.location.assign("../");
