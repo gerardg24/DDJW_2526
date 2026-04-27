@@ -9,6 +9,15 @@ const StateCard = Object.freeze({
   DONE: 2
 });
 
+function saveRanking(score) {
+    let alias = sessionStorage.getItem('alias') || 'Anònim';
+    let ranking = JSON.parse(localStorage.getItem('ranking')) || [];
+    ranking.push({ alias: alias, score: score });
+    ranking.sort((a, b) => b.score - a.score);
+    ranking = ranking.slice(0, 10);
+    localStorage.setItem('ranking', JSON.stringify(ranking));
+}
+
 var game = {
     items: [],
     states: [],
@@ -136,6 +145,9 @@ var game = {
                 sessionStorage.setItem('currentScore', this.score); 
                 
                 if (this.score <= 0){
+                    if (this.gameMode === 2) {
+                        saveRanking(parseInt(sessionStorage.getItem('currentScore')) + this.penalty);
+                    }
                     alert ("Has perdut");
                     sessionStorage.removeItem('currentLevel');
                     sessionStorage.removeItem('currentScore');
