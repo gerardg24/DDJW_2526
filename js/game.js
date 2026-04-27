@@ -1,19 +1,28 @@
-import {$} from "../library/jquery-4.0.0.slim.module.min.js";
-import {clickCard, gameItems, selectCards, startGame, initCard, saveGame} from "./memory.js";
+import { clickCard, selectCards, startGame, initCard, gameItems, saveGame } from "./memory.js";
 
-var game = $('#game');
+let gameDiv = document.getElementById('game');
 
 selectCards();
-gameItems.forEach(function (value, idx)
-{
-    game.append(`<img id="${idx}" title="card">`);  // Add element
-    let card = $(`#${idx}`);                       // Obtain element
-    card.on('click', function(){
+
+gameItems.forEach(function (value, idx) {
+    let img = document.createElement('img');
+    img.id = idx;
+    img.title = "card";
+    img.src = value;
+    
+    img.addEventListener('click', function() {
         clickCard(idx);
     });
-    card.attr('src', value);                  // Modify values   
-    initCard(val => card.attr('src', val));        
-});
-startGame();
+    
+    gameDiv.appendChild(img);
 
-$('#save').on('click', ()=>saveGame());
+    initCard(function(newSrc) {
+        img.src = newSrc;
+    });
+});
+
+document.getElementById('save').addEventListener('click', function() {
+    saveGame();
+});
+
+startGame();
