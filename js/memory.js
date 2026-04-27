@@ -18,6 +18,10 @@ var game = {
     score: 200,
     numCards: 2,
     groupSize: 2,
+    gameMode: 1,
+    currentLevel: 1,
+    penalty: 25,
+    hideTime: 1000,
     goBack: function(idx){
         this.setValue && this.setValue[idx](back);
         this.states[idx] = StateCard.ENABLE;
@@ -27,6 +31,8 @@ var game = {
         this.states[idx] = StateCard.DISABLE;
     },
     select: function(){
+        this.gameMode = parseInt(sessionStorage.getItem('gameMode')) || 1;
+
         if (sessionStorage.load){ 
             let toLoad = JSON.parse(sessionStorage.load);
             this.items = toLoad.items;
@@ -35,10 +41,34 @@ var game = {
             this.score = toLoad.score;
             this.numCards = toLoad.numCards;
             this.groupSize = toLoad.groupSize;
+            this.gameMode = toLoad.gameMode;
+            this.currentLevel = toLoad.currentLevel;
+            this.penalty = toLoad.penalty;
+            this.hideTime = toLoad.hideTime;
         }
         else{ 
-            this.numCards = parseInt(sessionStorage.getItem('numCards')) || 2;
-            this.groupSize = parseInt(sessionStorage.getItem('groupSize')) || 2;
+            if (this.gameMode === 2) {
+                this.currentLevel = parseInt(sessionStorage.getItem('currentLevel')) || parseInt(sessionStorage.getItem('startLevel')) || 1;
+                
+                this.numCards = Math.min(2 + Math.floor(this.currentLevel / 2), resources.length); 
+                this.groupSize = 2 + Math.floor(this.currentLevel / 4);
+                this.penalty = 25 + (this.currentLevel * 5); 
+                this.hideTime = Math.max(200, 1000 - (this.currentLevel * 50)); 
+                
+                if (this.currentLevel > (parseInt(sessionStorage.getItem('startLevel')) || 1)) {
+                    this.score = parseInt(sessionStorage.getItem('currentScore')) || 200;
+                } else {
+                    this.score = 200;
+                    sessionStorage.setItem('currentScore', this.score);
+                }
+            } else {
+                this.numCards = parseInt(sessionStorage.getItem('numCards')) || 2;
+                this.groupSize = parseInt(sessionStorage.getItem('groupSize')) || 2;
+                this.score = 200;
+                this.penalty = 25;
+                this.hideTime = 1000;
+            }
+
             this.flippedCards = [];
             this.items = resources.slice();          
             shuffe(this.items);                      
@@ -63,7 +93,7 @@ var game = {
                 setTimeout(()=>{
                     this.ready++;
                     this.goBack(indx);
-                }, 1000 + 100 * indx);
+                }, this.hideTime + (100 * indx));
             }
         });
     },
@@ -82,8 +112,15 @@ var game = {
                 this.flippedCards = [];
                 
                 if (this.numCards <= 0){
-                    alert(`Has guanyat amb ${this.score} punts!!!!`);
-                    window.location.assign("../");
+                    if (this.gameMode === 1) {
+                        alert(`Has guanyat amb ${this.score} punts!!!!`);
+                        window.location.assign("../");
+                    } else {
+                        alert(`Nivell ${this.currentLevel} superat! Punts: ${this.score}.`);
+                        sessionStorage.setItem('currentLevel', this.currentLevel + 1);
+                        sessionStorage.setItem('currentScore', this.score);
+                        window.location.reload(); 
+                    }
                 }
             } else {
                 let tempCards = [...this.flippedCards];
@@ -93,11 +130,15 @@ var game = {
                 setTimeout(() => {
                     tempCards.forEach(id => this.goBack(id));
                     this.ready += tempCards.length;
-                }, 1000);
+                }, this.hideTime);
 
-                this.score -= 25;
+                this.score -= this.penalty;
+                sessionStorage.setItem('currentScore', this.score); 
+                
                 if (this.score <= 0){
                     alert ("Has perdut");
+                    sessionStorage.removeItem('currentLevel');
+                    sessionStorage.removeItem('currentScore');
                     window.location.assign("../");
                 }
             }
@@ -110,7 +151,11 @@ var game = {
             flippedCards: this.flippedCards,
             score: this.score,
             numCards: this.numCards,
-            groupSize: this.groupSize
+            groupSize: this.groupSize,
+            gameMode: this.gameMode,
+            currentLevel: this.currentLevel,
+            penalty: this.penalty,
+            hideTime: this.hideTime
         });
         
         let ret = false;
