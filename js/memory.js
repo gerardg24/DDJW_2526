@@ -1,7 +1,13 @@
-const resources = ['../resources/cb.png', '../resources/co.png',
-                '../resources/sb.png', '../resources/so.png',
-                '../resources/tb.png', '../resources/to.png'];
-const back = '../resources/back.png';
+const resources = [
+    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'><rect width='100' height='150' rx='10' fill='white' stroke='navy' stroke-width='4'/><circle cx='50' cy='75' r='35' fill='crimson'/></svg>",
+    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'><rect width='100' height='150' rx='10' fill='white' stroke='navy' stroke-width='4'/><rect x='20' y='45' width='60' height='60' fill='dodgerblue'/></svg>",
+    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'><rect width='100' height='150' rx='10' fill='white' stroke='navy' stroke-width='4'/><polygon points='50,30 20,110 80,110' fill='forestgreen'/></svg>",
+    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'><rect width='100' height='150' rx='10' fill='white' stroke='navy' stroke-width='4'/><polygon points='50,38 61,66 91,66 66,84 76,112 50,94 24,112 34,84 9,66 39,66' fill='gold'/></svg>",
+    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'><rect width='100' height='150' rx='10' fill='white' stroke='navy' stroke-width='4'/><polygon points='50,30 80,75 50,120 20,75' fill='purple'/></svg>",
+    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'><rect width='100' height='150' rx='10' fill='white' stroke='navy' stroke-width='4'/><polygon points='50,25 80,42 80,108 50,125 20,108 20,42' fill='darkorange'/></svg>"
+];
+const back = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'><rect width='92' height='142' x='4' y='4' rx='10' fill='%230f3460' stroke='%23e94560' stroke-width='8'/></svg>";
+
 const StateCard = Object.freeze({ DISABLE: 0, ENABLE: 1, DONE: 2 });
 
 function saveRanking(score) {
