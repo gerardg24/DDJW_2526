@@ -1,51 +1,22 @@
-import {$} from "../library/jquery-4.0.0.slim.module.min.js";
+addEventListener('load', function() {
+    let numCardsInput = document.getElementById('numCards');
+    let groupSizeSelect = document.getElementById('groupSize');
+    let startLevelInput = document.getElementById('startLevel');
+    let saveBtn = document.getElementById('save');
 
-var options = function(){
-    const default_options = {
-        pairs: 2,
-        difficulty: 'normal'
-    } 
+    numCardsInput.value = sessionStorage.getItem('numCards') || localStorage.getItem('numCards') || 2;
+    groupSizeSelect.value = sessionStorage.getItem('groupSize') || localStorage.getItem('groupSize') || 2;
+    startLevelInput.value = sessionStorage.getItem('startLevel') || localStorage.getItem('startLevel') || 1;
 
-    var pairs = $('#pairs');
-    var difficulty = $('#dif');
-    
-    var savedOptions = localStorage.options && JSON.parse(localStorage.options);
-    var options = Object.create(default_options);
+    saveBtn.addEventListener('click', function() {
+        sessionStorage.setItem('numCards', numCardsInput.value);
+        sessionStorage.setItem('groupSize', groupSizeSelect.value);
+        sessionStorage.setItem('startLevel', startLevelInput.value);
 
-    if (savedOptions && savedOptions.pairs)
-        options.pairs = savedOptions.pairs;
-    if (savedOptions && savedOptions.difficulty)
-        options.difficulty = savedOptions.difficulty;
+        localStorage.setItem('numCards', numCardsInput.value);
+        localStorage.setItem('groupSize', groupSizeSelect.value);
+        localStorage.setItem('startLevel', startLevelInput.value);
 
-    pairs.val(options.pairs);
-    difficulty.val(options.difficulty);
-
-    pairs.on('change', function (){
-        options.pairs = pairs.val();
+        window.location.assign("../index.html");
     });
-
-    difficulty.on('change', function (){
-        options.difficulty = difficulty.val();
-    });
-
-    return {
-        applyChanges: function(){
-            localStorage.options = JSON.stringify(options);
-        },
-        defaultValues: function(){
-            options.pairs = default_options.pairs;
-            options.difficulty = default_options.difficulty;
-            pairs.val(options.pairs);
-            difficulty.val(options.difficulty);
-        }
-    }
-}();
-
-$('#default').on('click', function(){
-    options.defaultValues();
-})
-
-$('#apply').on('click', function(){
-    options.applyChanges();
-    location.assign("../");
 });

@@ -1,20 +1,33 @@
 <!DOCTYPE html> 
-<html>
+<html lang="ca">
 	<head>
-        <script src="../js/options.js" type="module"></script>
+        <meta charset="UTF-8">
+		<script src="../js/options.js" type="module"></script>
+		<link rel="stylesheet" href="../styles/main.css">
 		<title> Memory - Opcions </title>
 	</head>
 	<body>
-		<h1>Opcions</h1>
-        <label for="pairs">Número de cartes</label>
-        <input type="number" id="pairs" value="2" min="2" max="6">
-        <label for="dif">Dificultat</label>
-        <select id="dif">
-            <option value="easy">Baixa</option>
-            <option value="normal" selected>Normal</option>
-            <option value="hard">Alta</option>
-        </select>
-        <button id="default">Per defecte</button>
-        <button id="apply">Aplicar</button>
+		<h1 id="title">Opcions</h1>
+        
+        <div style="color: white; text-align: center; margin-bottom: 20px;">
+            <label for="numCards">Número de parelles/grups a trobar:</label><br>
+            <input type="number" id="numCards" min="2" max="6" value="2">
+        </div>
+
+        <div style="color: white; text-align: center; margin-bottom: 20px;">
+            <label for="groupSize">Mida del grup:</label><br>
+            <select id="groupSize">
+                <option value="2">Parelles (2 cartes)</option>
+                <option value="3">Trios (3 cartes)</option>
+                <option value="4">Quartets (4 cartes)</option>
+            </select>
+        </div>
+
+        <div style="color: white; text-align: center; margin-bottom: 20px;">
+            <label for="startLevel">Nivell d'inici (Mode 2):</label><br>
+            <input type="number" id="startLevel" min="1" max="10" value="1">
+        </div>
+
+		<button id="save" class="center"> Guardar i Tornar </button>
 	</body>
 </html>
