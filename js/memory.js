@@ -7,16 +7,25 @@ const resources = [
     "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'><rect width='100' height='150' rx='10' fill='white' stroke='navy' stroke-width='4'/><polygon points='50,25 80,42 80,108 50,125 20,108 20,42' fill='darkorange'/></svg>"
 ];
 const back = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'><rect width='92' height='142' x='4' y='4' rx='10' fill='%230f3460' stroke='%23e94560' stroke-width='8'/></svg>";
-
 const StateCard = Object.freeze({ DISABLE: 0, ENABLE: 1, DONE: 2 });
 
-function saveRanking(score) {
+function saveRanking(level) {
     let alias = sessionStorage.getItem('alias') || 'Anònim';
     let ranking = JSON.parse(localStorage.getItem('ranking')) || [];
-    ranking.push({ alias: alias, score: score });
-    ranking.sort((a, b) => b.score - a.score);
+    ranking.push({ alias: alias, level: level });
+    ranking.sort((a, b) => b.level - a.level);
     ranking = ranking.slice(0, 10);
     localStorage.setItem('ranking', JSON.stringify(ranking));
+}
+
+function deleteCurrentSave() {
+    let saveId = sessionStorage.getItem('currentSaveId');
+    if (saveId) {
+        let saves = JSON.parse(localStorage.getItem('memory_saves')) || [];
+        saves = saves.filter(s => s.id !== saveId);
+        localStorage.setItem('memory_saves', JSON.stringify(saves));
+        sessionStorage.removeItem('currentSaveId');
+    }
 }
 
 var game = {
@@ -33,19 +42,9 @@ var game = {
     },
     select: function(){
         this.gameMode = parseInt(sessionStorage.getItem('gameMode')) || 1;
-        this.isLoaded = false;
         if (sessionStorage.load){ 
             let toLoad = JSON.parse(sessionStorage.load);
-            this.items = toLoad.items;
-            this.states = toLoad.states;
-            this.flippedCards = toLoad.flippedCards || [];
-            this.score = toLoad.score;
-            this.numCards = toLoad.numCards;
-            this.groupSize = toLoad.groupSize;
-            this.gameMode = toLoad.gameMode;
-            this.currentLevel = toLoad.currentLevel;
-            this.penalty = toLoad.penalty;
-            this.hideTime = toLoad.hideTime;
+            Object.assign(this, toLoad);
             this.isLoaded = true;
             sessionStorage.removeItem('load');
         } else { 
@@ -75,11 +74,8 @@ var game = {
         this.items.forEach((_,indx)=>{
             if (this.isLoaded) {
                 this.ready++;
-                if (this.states[indx] === StateCard.ENABLE) {
-                    this.setValue && this.setValue[indx](back);
-                } else {
-                    this.setValue && this.setValue[indx](this.items[indx]);
-                }
+                if (this.states[indx] === StateCard.ENABLE) this.goBack(indx);
+                else { this.setValue && this.setValue[indx](this.items[indx]); }
             } else {
                 setTimeout(()=>{ this.ready++; this.goBack(indx); }, this.hideTime + (100 * indx)); 
             }
@@ -97,6 +93,7 @@ var game = {
                 this.flippedCards = [];
                 if (this.numCards <= 0){
                     if (this.gameMode === 1) {
+                        deleteCurrentSave();
                         alert(`Victoria! Punts: ${this.score}`);
                         window.location.assign("../index.html");
                     } else {
@@ -113,7 +110,8 @@ var game = {
                 setTimeout(() => { temp.forEach(id => this.goBack(id)); this.ready += temp.length; }, this.hideTime);
                 this.score -= this.penalty;
                 if (this.score <= 0){
-                    if (this.gameMode === 2) saveRanking(this.score + this.penalty);
+                    if (this.gameMode === 2) saveRanking(this.currentLevel);
+                    deleteCurrentSave();
                     alert("Has perdut!");
                     sessionStorage.removeItem('currentLevel');
                     sessionStorage.removeItem('currentScore');
@@ -123,13 +121,22 @@ var game = {
         }
     },
     save: function(){
-        let to_save = JSON.stringify({
+        let saves = JSON.parse(localStorage.getItem('memory_saves')) || [];
+        let saveId = sessionStorage.getItem('currentSaveId') || ("save_" + Date.now());
+        let gameState = {
+            id: saveId,
+            alias: sessionStorage.getItem('alias'),
+            date: new Date().toLocaleString(),
             items: this.items, states: this.states, flippedCards: this.flippedCards,
             score: this.score, numCards: this.numCards, groupSize: this.groupSize,
             gameMode: this.gameMode, currentLevel: this.currentLevel,
             penalty: this.penalty, hideTime: this.hideTime
-        });
-        localStorage.save = to_save;
+        };
+        let index = saves.findIndex(s => s.id === saveId);
+        if (index !== -1) saves[index] = gameState;
+        else saves.push(gameState);
+        localStorage.setItem('memory_saves', JSON.stringify(saves));
+        sessionStorage.setItem('currentSaveId', saveId);
         window.location.assign("../index.html");
     }
 }
